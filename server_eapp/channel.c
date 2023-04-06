@@ -4,8 +4,8 @@
 #include "string.h"
 #include "edge_wrapper.h"
 
-unsigned char server_pk[crypto_kx_PUBLICKEYBYTES], server_sk[crypto_kx_SECRETKEYBYTES];
-unsigned char client_pk[crypto_kx_PUBLICKEYBYTES];
+unsigned char dh_server_pk[crypto_kx_PUBLICKEYBYTES], dh_server_sk[crypto_kx_SECRETKEYBYTES];
+unsigned char dh_client_pk[crypto_kx_PUBLICKEYBYTES];
 unsigned char rx[crypto_kx_SESSIONKEYBYTES];
 unsigned char tx[crypto_kx_SESSIONKEYBYTES];
 
@@ -20,7 +20,7 @@ void channel_init(){
   }
 
   /* Generate our keys */
-  if(crypto_kx_keypair(server_pk, server_sk) != 0){
+  if(crypto_kx_keypair(dh_server_pk, dh_server_sk) != 0){
     ocall_print_buffer("[C] Unable to generate keypair, exiting\n");
     EAPP_RETURN(1);
   }
@@ -31,7 +31,7 @@ void channel_establish(){
 
   /* Ask libsodium to generate session keys based on the recv'd pk */
 
-  if(crypto_kx_server_session_keys(rx, tx, server_pk, server_sk, client_pk) != 0) {
+  if(crypto_kx_server_session_keys(rx, tx, dh_server_pk, dh_server_sk, dh_client_pk) != 0) {
     ocall_print_buffer("[C] Unable to generate session keys, exiting\n");
     EAPP_RETURN(1);
   }

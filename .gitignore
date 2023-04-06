@@ -3,3 +3,8 @@
 *.riscv
 *.eapp_riscv
 *~
+.vscode
+build/
+riscv-musl-toolchain-lp64d-rv64gc-2021.04.bionic.7z
+riscv64-musl/
+libsodium_builds/

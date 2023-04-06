@@ -10,6 +10,7 @@
 #include "trusted_client.h"
 #include "client.h"
 
+#define SESSION_CTX_SIZE 256
 
 #define PORTNUM 8067
 int fd_sock;
@@ -50,8 +51,7 @@ byte* recv_buffer(size_t* len){
   return reply;
 }
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
   int ignore_valid = 0;
   if(argc < 2) {
     printf("Usage %s hostname\n", argv[0]);
@@ -93,14 +93,36 @@ int main(int argc, char *argv[])
   free(report_buffer);
 
   /* Send pubkey */
-  size_t pubkey_size;
-  byte* pubkey = trusted_client_pubkey(&pubkey_size);
-  send_buffer(pubkey, pubkey_size);
+/* DEMO CHANGES */
+  // size_t pubkey_size;
+  // byte* pubkey = trusted_client_pubkey(&pubkey_size);
+  // send_buffer(pubkey, pubkey_size); 
+  
+  size_t session_ctx_size = SESSION_CTX_SIZE;
+  byte session_context_buffer[SESSION_CTX_SIZE];
+  if(!gen_session_context(session_context_buffer)){
+    exit(-1);
+  }
+  // TODO: understand why is necessary to break the message (this is an open issue on keystone)
+  send_buffer(session_context_buffer, 128);
+  send_buffer(session_context_buffer+128, 128);
+/* END DEMO CHANGES */
   
   /* Send/recv messages */
-  for(;;){
-    printf("Either type message for remote word count, or q to quit\n> ");
+  printf("\n\n\tAvailable services\n");
+  printf("1. generate keys\n");
+  printf("2. store verifiable credential\n");
+  printf("3. get verifiable presentation\n");
+  printf(" . everything else to quit\n");
+  
+  unsigned char secret[SECRET_LEN];
+  randombytes_buf(secret, SECRET_LEN);
 
+  for(;;){
+    // TODO: send a REAL but still fixed verifiable credential
+    char vc[37] = "This is a demo verifiable credential";
+
+    printf("\nType the service to request:\n> ");
     memset(local_buffer, 0, BUFFERLEN);
     fgets((char*)local_buffer, BUFFERLEN-1, stdin);
     printf("\n");
@@ -110,12 +132,34 @@ int main(int argc, char *argv[])
       send_exit_message();
       close(fd_sock);
       exit(0);
-    }
-    else{
-      send_wc_message((char*)local_buffer);
+    } else {
+      unsigned short request_type;
+      switch(local_buffer[0]){
+        case '1':
+          request_type = SERVICE_GEN_KEYS;
+          // TODO: make the client choose the key type and build a correct request
+        break;
+        case '2':
+          request_type = SERVICE_STORE_VC;
+          // TODO: here we should send the VC
+          memcpy(local_buffer, vc, 37);
+        break;
+        case '3':
+          request_type = SERVICE_GET_VP;
+        break;
+        default:
+          send_exit_message();
+          close(fd_sock);
+          exit(0);
+        break;
+      }
+      
+      send_request_message((char*)local_buffer, secret, request_type);
       size_t reply_size;
       byte* reply = recv_buffer(&reply_size);
-      trusted_client_read_reply(reply, reply_size);
+      response_message_t* response = trusted_client_read_reply(reply, &reply_size);
+      // TODO: process response or return response
+
       free(reply);
     }
   }

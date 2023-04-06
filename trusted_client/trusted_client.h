@@ -2,7 +2,7 @@
 #define _TRUSTED_CLIENT_H_
 
 #include <stdio.h>
-#include "calc_msg.h"
+#include "messages.h"
 
 #include <string>
 #include <iostream>
@@ -18,14 +18,18 @@ void trusted_client_exit();
 void trusted_client_init();
 byte* trusted_client_pubkey(size_t* len);
 void trusted_client_get_report(void* buffer, int ignore_valid);
-int trusted_client_read_reply(unsigned char* data, size_t len);
+response_message_t* trusted_client_read_reply(unsigned char* data, size_t* len);
 void send_exit_message();
-void send_wc_message(char* buffer);
-calc_message_t* generate_wc_message(char* buffer, size_t buffer_len, size_t* finalsize);
-calc_message_t* generate_exit_message(size_t* finalsize);
+void send_request_message(char* buffer, unsigned char* secret, unsigned short request_type);
+request_message_t* generate_request_message(char* buffer, size_t buffer_len, size_t* finalsize, unsigned char* secret, unsigned short request_type);
+request_message_t* generate_exit_message(size_t* finalsize);
 
 
 byte* trusted_client_box(byte* msg, size_t size, size_t* finalsize);
-void trusted_client_unbox(unsigned char* buffer, size_t len);
+size_t trusted_client_unbox(unsigned char* buffer, size_t len);
+
+/* DEMO CHANGES */
+int gen_session_context(byte* buffer);
+/* END DEMO CHANGES */ 
 
 #endif /* _TRUSTED_CLIENT_H_ */

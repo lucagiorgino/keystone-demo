@@ -1,4 +1,4 @@
-# keystone-demo
+# Keystone-demo
 Demo host and enclave applications exercising most functionality.
 
 This demo includes a small enclave server that is capable of remote
@@ -15,7 +15,7 @@ The demo will generally work on the master branch of Keystone, but
 will ALWAYS work on the dev branch. We suggest building the dev branch
 of Keystone if you have any issues with the demo on master.
 
-# Quick Start
+# Quick Start - please refer to the master thesis (this will be updated as soon as possible)
 
 The demo requires the expected hash of the security monitor.
 The hash will be used by the trusted client to verify that the server enclave

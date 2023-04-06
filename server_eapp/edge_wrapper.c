@@ -32,9 +32,9 @@ unsigned long ocall_print_buffer(char* data){
   return retval;
 }
 
-void ocall_wait_for_message(struct edge_data *msg){
+void ocall_wait_for_request(struct edge_data *msg){
 
-  ocall(OCALL_WAIT_FOR_MESSAGE, NULL, 0, msg, sizeof(struct edge_data));
+  ocall(OCALL_WAIT_FOR_REQUEST, NULL, 0, msg, sizeof(struct edge_data));
 }
 
 void ocall_wait_for_client_pubkey(unsigned char* pk, size_t len){
@@ -46,3 +46,25 @@ void ocall_send_reply(unsigned char* data, size_t len){
   ocall(OCALL_SEND_REPLY, data, len, 0, 0);
   return;
 }
+
+/* DEMO CHANGES INCLUDE */
+void ocall_wait_for_client_session_ctx(unsigned char* stub_cert_buff, size_t len){
+  ocall(OCALL_WAIT_FOR_CLIENT_SESSION_CTX, NULL, 0, stub_cert_buff, len);
+  return;
+}
+
+// ocall(
+//    unsigned long call_id, void* data, size_t data_len, void* return_buffer,
+//    size_t return_len);
+
+void ocall_save_sealed_data(unsigned char* buffer, size_t len){
+  ocall(OCALL_SAVE_SEALED_DATA, buffer, len, 0, 0);
+  return;
+}
+
+void ocall_retrieve_sealed_data(unsigned char* buffer, size_t len, struct edge_data *msg){
+  ocall(OCALL_RETRIEVE_SEALED_DATA, buffer, len, msg, sizeof(struct edge_data));
+  return;
+}
+
+/* END DEMO CHANGES */

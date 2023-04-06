@@ -35,7 +35,8 @@ include_directories(include
   ${KEYSTONE_SDK_DIR}/include
   ${KEYSTONE_SDK_DIR}/include/host
   ${KEYSTONE_SDK_DIR}/include/edge
-  ${KEYSTONE_SDK_DIR}/include/verifier)
+  ${KEYSTONE_SDK_DIR}/include/verifier
+  )
 
 # set paths to the libraries
 set(KEYSTONE_LIB_HOST ${KEYSTONE_SDK_DIR}/lib/libkeystone-host.a)
@@ -48,6 +49,9 @@ find_program(MAKESELF makeself)
 
 # trusted client
 add_executable(trusted_client.riscv
+  # DEMO CHANGES
+  include/test_client_key.h
+  # END DEMO CHANGES
   trusted_client/client.cpp
   trusted_client/trusted_client.cpp
   include/enclave_expected_hash.h
@@ -62,9 +66,17 @@ target_link_libraries(trusted_client.riscv
 add_subdirectory(server_eapp)
 set(host_bin demo-server.riscv)
 set(host_src enclave-host.cpp edge_wrapper.cpp)
-set(eyrie_plugins "freemem")
+# DEMO CHANGES
+# add target for Eyrie runtime (see keystone.cmake)
+# add "strace_debug" plugin to trace syscalls inside the TA
+# set(eyrie_plugins "strace_debug debug freemem linux_syscall untrusted_io_syscall env_setup") 
+set(eyrie_plugins "freemem linux_syscall untrusted_io_syscall env_setup")
+
+# END DEMO CHANGES
 set(package_name "demo-server.ke")
 set(package_script "./demo-server.riscv")
+# find program "makeself"
+find_program(MAKESELF makeself)
 
 add_executable(${host_bin} ${host_src})
 target_link_libraries(${host_bin} ${KEYSTONE_LIB_HOST} ${KEYSTONE_LIB_EDGE} ${KEYSTONE_LIB_VERIFIER})
@@ -82,3 +94,30 @@ add_keystone_package(packagedemo
 
 add_dependencies(packagedemo ${eapp_bin}-eyrie)
 
+# DEMO CHANGES
+# Custom targets
+
+# Copy package to overlay
+add_custom_target(overlay
+  COMMAND ${CMAKE_COMMAND} -E copy ${package_name} ${KEYSTONE_BUILD_DIR}/overlay/root
+  #WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/include/foo"
+  COMMENT "Copying package ${package_name} to rootfs"
+  VERBATIM
+)
+
+add_dependencies(overlay packagedemo)
+
+add_custom_target(image
+  COMMAND ${CMAKE_COMMAND} -E chdir . make -C ${KEYSTONE_BUILD_DIR} image
+  COMMENT "Generating qemu image..."
+  VERBATIM
+)
+
+add_dependencies(image overlay)
+
+add_custom_target(qemu
+  COMMAND ${CMAKE_COMMAND} -E chdir . ${KEYSTONE_BUILD_DIR}/scripts/run-qemu.sh
+  COMMENT "Running QEMU..."
+  VERBATIM
+)
+# END DEMO CHANGES

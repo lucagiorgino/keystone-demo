@@ -19,8 +19,7 @@
 int dummy_errno = 0;
 
 BAD_CALL( abort )
-BAD_CALL( __assert_fail )
-BAD_CALL( close )
+//BAD_CALL( close ) // FIXME:
 //BAD_CALL( __errno_location ) We actually interpose on this, see below
 BAD_CALL( fcntl )
 BAD_CALL( __fxstat )
@@ -35,7 +34,7 @@ BAD_CALL( poll )
 //BAD_CALL( posix_memalign )
 int posix_memalign (void **__memptr, size_t __alignment, size_t __size) {EAPP_RETURN(EAPP_ERR_RET); return 0;};
 BAD_CALL( raise )
-BAD_CALL( read )
+//BAD_CALL( read ) // FIXME:
 //BAD_CALL( syscall )  We actually interpose on this, see below
 //BAD_CALL( sysconf )  We actually interpose on this, see below
 //BAD_CALL( getpid ) We actually interpose on this, see below
@@ -49,7 +48,7 @@ BAD_CALL( read )
 size_t remaining_bytes;
 unsigned char* entropy_bytes;
 
-void magic_random_init(){
+void magic_random_init(){  // FIXME:
   ocall_print_buffer("NOT USING REAL RANDOMNESS: TEST ONLY\n");
   entropy_bytes = (unsigned char*)malloc(512);
   if(!entropy_bytes){
@@ -68,7 +67,7 @@ int getpid(){
 }
 
 /* TODO give a better timeofday */
-int gettimeofday(struct timeval *tv, struct timezone *tz){
+int gettimeofday_1(struct timeval *tv, struct timezone *tz){  // FIXME:
   /* We will just return cycle count for now */
   unsigned long cycles;
   asm volatile ("rdcycle %0" : "=r" (cycles));
@@ -79,7 +78,8 @@ int gettimeofday(struct timeval *tv, struct timezone *tz){
   return 0;
 }
 
-int* __errno_location(void){
+
+int* __errno_location_1(void){
   return &dummy_errno;
 }
 
